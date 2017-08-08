@@ -231,4 +231,23 @@ trait MoPaymentTrait
 
         return new Collection($invoices);
     }
+
+    /**
+     * Find an invoice by ID.
+     *
+     * @param  string  $id
+     * @return \Potelo\MoPayment\Invoice|null
+     */
+    public function findInvoice($id)
+    {
+        Moip::init($this->getApiToken(), $this->getApiKey(), $this->getEndpointEnvironment());
+
+        try {
+            return new Invoice(Moip_Invoice::get($id));
+        } catch (\Exception $e) {
+            //
+        }
+
+        return null;
+    }
 }

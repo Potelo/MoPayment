@@ -8,9 +8,9 @@ class Invoice extends ApiResource
     protected static $resource_path = '/invoices';
 
     /**
-     * @param string $code The code of the subscription to retrieve
+     * @param string $code The code of the invoice to retrieve
      *
-     * @return \Potelo\MoPayment\Moip\Subscription
+     * @return \Potelo\MoPayment\Moip\Invoice
      */
     public static function get($code)
     {
