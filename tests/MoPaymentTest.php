@@ -47,7 +47,7 @@ class MoPaymentTest extends TestCase
             $table->string('name');
             $table->string('email');
             $table->string('cpf');
-            $table->string('moip_id')->unique();
+            $table->string('moip_id')->unique()->nullable();
             $table->timestamps();
         });
 
@@ -92,15 +92,13 @@ class MoPaymentTest extends TestCase
         $user = User::create([
             'name' => 'Maria Assinante',
             'email' => 'maria_assinante@example.com',
-            'cpf' => '01234567891',
-            'moip_id' => uniqid(),
+            'cpf' => '01234567891'
         ]);
 
-        $plan_code = '00000';
+        $plan_code = '1500323600';
 
         $subscription = $user->newSubscription('Monitoramentos', $plan_code, 'CREDIT_CARD')
             ->create([
-                'code' => $user->moip_id,
                 'fullname' => 'Joao Assinante',
                 'email' => 'joaoassinante@example.com',
                 'cpf' => '22222222222',

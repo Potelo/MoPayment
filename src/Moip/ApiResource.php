@@ -3,8 +3,6 @@
 namespace Potelo\MoPayment\Moip;
 
 use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 
 /**
@@ -15,9 +13,11 @@ abstract class ApiResource extends MoipObject
 {
     protected static function create($params, $query_data = null)
     {
-        $endpoint_path = $query_data ? '?' . http_build_query($query_data) : '';
+        $query = $query_data ? '?' . http_build_query($query_data) : '';
 
-        $response = self::request('POST', $endpoint_path, $params);
+        $endpoint = Moip::getEndpoint() . static::$resource_path . $query;
+
+        $response = self::request('POST', $endpoint, $params);
 
         $response = json_decode($response->getBody()->getContents());
 
@@ -26,9 +26,9 @@ abstract class ApiResource extends MoipObject
 
     protected static function get($code)
     {
-        $endpoint_path = '/' . $code;
+        $endpoint = Moip::getEndpoint() . static::$resource_path . '/' . $code;
 
-        $response = self::request('GET', $endpoint_path);
+        $response = self::request('GET', $endpoint);
 
         $response = json_decode($response->getBody()->getContents());
 
@@ -37,27 +37,28 @@ abstract class ApiResource extends MoipObject
 
     protected static function update($code, $params)
     {
-        $endpoint_path = '/' . $code;
+        $endpoint = Moip::getEndpoint() . static::$resource_path . '/' . $code;
 
-        self::request('PUT', $endpoint_path, $params);
+        self::request('PUT', $endpoint, $params);
 
         return self::convertToMoipObject($params);
     }
 
     protected static function all()
     {
-        $response = self::request('GET');
+        $endpoint = Moip::getEndpoint() . static::$resource_path;
+
+        $response = self::request('GET', $endpoint);
 
         $response = json_decode($response->getBody()->getContents());
 
         return self::convertToMoipObject($response);
     }
 
-    protected static function request($method, $endpoint_path = '', $params = [])
+    protected static function request($method, $endpoint = '', $params = [])
     {
         $client = new GuzzleClient();
 
-        $endpoint = Moip::getEndpoint() . static::$endpoint_path . $endpoint_path;
         $authorization = Moip::getApiAuthorization();
 
         $options = [

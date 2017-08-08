@@ -5,7 +5,7 @@ namespace Potelo\MoPayment\Moip;
 
 class Subscription extends ApiResource
 {
-    protected static $endpoint_path = '/subscriptions';
+    protected static $resource_path = '/subscriptions';
 
     /**
      * @param array $params
@@ -41,23 +41,37 @@ class Subscription extends ApiResource
 
     public function suspend()
     {
-        $endpoint_path = '/' . $this->code . '/suspend';
+        $endpoint = Moip::getEndpoint() . static::$resource_path . '/' . $this->code . '/suspend';
 
         $params['code'] = $this->code;
 
-        parent::request('PUT', $endpoint_path, $params);
+        parent::request('PUT', $endpoint, $params);
 
         return true;
     }
 
     public function activate()
     {
-        $endpoint_path = '/' . $this->code . '/activate';
+        $endpoint = Moip::getEndpoint() . static::$resource_path . '/' . $this->code . '/activate';
 
         $params['code'] = $this->code;
 
-        parent::request('PUT', $endpoint_path, $params);
+        parent::request('PUT', $endpoint, $params);
 
         return true;
+    }
+
+    /**
+     * Get a colletion of invoices
+     */
+    public function invoices()
+    {
+        $endpoint = Moip::getEndpoint() . static::$resource_path . '/' . $this->code . '/invoices';
+
+        $response = parent::request('GET', $endpoint);
+
+        $response = json_decode($response->getBody()->getContents());
+
+        return self::convertToMoipObject($response);
     }
 }
