@@ -72,4 +72,15 @@ class Invoice
     {
         return $this->invoice;
     }
+
+    /**
+     * Dynamically get values from the Moip invoice.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    public function __get($key)
+    {
+        return $this->invoice->{$key};
+    }
 }
