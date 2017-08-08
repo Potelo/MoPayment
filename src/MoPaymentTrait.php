@@ -225,7 +225,7 @@ trait MoPaymentTrait
         // work with than the plain Moip objects are. Then, we'll return the array.
         foreach ($moip_invoices as $invoice) {
             if ($invoice->status->description == 'Pago' || $include_pending) {
-                $invoices[] = new Invoice($this, $invoice);
+                $invoices[] = new Invoice($invoice);
             }
         }
 
