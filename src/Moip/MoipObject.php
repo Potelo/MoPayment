@@ -16,6 +16,7 @@ class MoipObject
             'plans',
             'customers',
             'subscriptions',
+            'invoices',
         );
 
         if(in_array(key($values), $types)) {

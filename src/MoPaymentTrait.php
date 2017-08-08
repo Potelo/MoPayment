@@ -3,10 +3,11 @@
 namespace Potelo\MoPayment;
 
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Collection;
 use Potelo\MoPayment\Moip\Customer;
 use Potelo\MoPayment\Moip\Moip;
-use Potelo\MoPayment\Subscription;
 use Potelo\MoPayment\Moip\Subscription as Moip_Subscription;
+use Potelo\MoPayment\Moip\Invoice as Moip_Invoice;
 
 trait MoPaymentTrait
 {
@@ -202,5 +203,32 @@ trait MoPaymentTrait
         Moip::init($this->getApiToken(), $this->getApiKey(), $this->getEndpointEnvironment());
 
         return Moip_Subscription::get($subscription_code);
+    }
+
+    /**
+     * Get a collection of the entity's invoices.
+     *
+     * @param $subscription_code
+     * @param $include_pending
+     * @return \Illuminate\Support\Collection
+     */
+    public function invoices($subscription_code, $include_pending = false)
+    {
+        $invoices = [];
+
+        Moip::init($this->getApiToken(), $this->getApiKey(), $this->getEndpointEnvironment());
+
+        $moip_invoices = Moip_Invoice::search($subscription_code);
+
+        // Here we will loop through the Moip invoices and create our own custom Invoice
+        // instances that have more helper methods and are generally more convenient to
+        // work with than the plain Moip objects are. Then, we'll return the array.
+        foreach ($moip_invoices as $invoice) {
+            if ($invoice->status->description == 'Pago' || $include_pending) {
+                $invoices[] = new Invoice($this, $invoice);
+            }
+        }
+
+        return new Collection($invoices);
     }
 }
