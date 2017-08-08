@@ -7,15 +7,6 @@ use Potelo\MoPayment\Moip\Invoice as Moip_Invoice;
 
 class Invoice implements \JsonSerializable
 {
-    use JsonSerializer;
-
-    /**
-     * The user instance.
-     *
-     * @var \Illuminate\Database\Eloquent\Model
-     */
-    public $user;
-
     /**
      * The Moip invoice instance.
      *
@@ -26,12 +17,10 @@ class Invoice implements \JsonSerializable
     /**
      * Create a new invoice instance.
      *
-     * @param  \Illuminate\Database\Eloquent\Model $user
      * @param  \Potelo\MoPayment\Moip\Invoice $invoice
      */
-    public function __construct($user, Moip_Invoice $invoice)
+    public function __construct(Moip_Invoice $invoice)
     {
-        $this->user = $user;
         $this->invoice = $invoice;
     }
 
@@ -84,5 +73,10 @@ class Invoice implements \JsonSerializable
     public function __get($key)
     {
         return $this->invoice->{$key};
+    }
+
+    public function jsonSerialize()
+    {
+        return get_object_vars($this->invoice);
     }
 }
