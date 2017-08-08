@@ -5,8 +5,10 @@ namespace Potelo\MoPayment;
 use Carbon\Carbon;
 use Potelo\MoPayment\Moip\Invoice as Moip_Invoice;
 
-class Invoice
+class Invoice implements \JsonSerializable
 {
+    use JsonSerializer;
+
     /**
      * The user instance.
      *
