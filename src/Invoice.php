@@ -12,14 +12,14 @@ class Invoice
      *
      * @var \Illuminate\Database\Eloquent\Model
      */
-    protected $user;
+    public $user;
 
     /**
      * The Moip invoice instance.
      *
      * @var \Potelo\MoPayment\Moip\Invoice
      */
-    protected $invoice;
+    public $invoice;
 
     /**
      * Create a new invoice instance.
