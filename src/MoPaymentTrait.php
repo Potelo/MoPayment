@@ -250,4 +250,16 @@ trait MoPaymentTrait
 
         return null;
     }
+
+    /**
+     * Update customer credit card.
+     *
+     * @param string $params
+     */
+    public function updateCard($params)
+    {
+        $customer = $this->asMoipCustomer();
+
+        $customer->updateCard($this->moip_id, $params);
+    }
 }
