@@ -29,6 +29,13 @@ class SubscriptionBuilder
     protected $code;
 
     /**
+     * The amount of the subscription in cents (override the plan amount).
+     *
+     * @var string
+     */
+    protected $amount;
+
+    /**
      * The code of the plan being subscribed to.
      *
      * @var string
@@ -49,27 +56,30 @@ class SubscriptionBuilder
      * @param  string  $subscription_name
      * @param  string  $plan_code
      * @param  string  $payment_method
+     * @param  string  $amount
      */
-    public function __construct($user, $subscription_name, $plan_code, $payment_method)
+    public function __construct($user, $subscription_name, $plan_code, $payment_method, $amount = null)
     {
         $this->user = $user;
         $this->name = $subscription_name;
         $this->code = uniqid();
         $this->plan_code = $plan_code;
         $this->payment_method = $payment_method;
+        $this->amount = $amount;
     }
 
     /**
      * Create a new Moip subscription.
      *
      * @param  array|\stdClass  $options
+     * @param  string  $amount
      * @return \Potelo\MoPayment\Subscription
      */
-    public function create($options = [])
+    public function create($options = [], $amount = '')
     {
         $customer = $this->getMoipCustomer($options);
 
-        $subscription_moip = $this->user->createMoipSubscription($this->buildPayload($customer->code));
+        $subscription_moip = $this->user->createMoipSubscription($this->buildPayload($customer->code, $amount));
 
         $subscription = $this->user->subscriptions()->create([
             'name' => $this->name,
@@ -111,6 +121,10 @@ class SubscriptionBuilder
                 'code' => $customer_code
             ]
         ];
+
+        if($this->amount) {
+            $payload['amount'] = $this->amount;
+        }
 
         return $payload;
     }
