@@ -50,6 +50,13 @@ class SubscriptionBuilder
     protected $payment_method;
 
     /**
+     * The code of the coupon to be applied
+     *
+     * @var string
+     */
+    protected $coupon_code;
+
+    /**
      * Create a new subscription builder instance.
      *
      * @param  mixed  $user
@@ -57,8 +64,9 @@ class SubscriptionBuilder
      * @param  string  $plan_code
      * @param  string  $payment_method
      * @param  string  $amount
+     * @param  string  $coupon_code
      */
-    public function __construct($user, $subscription_name, $plan_code, $payment_method, $amount = null)
+    public function __construct($user, $subscription_name, $plan_code, $payment_method, $amount = null, $coupon_code = null)
     {
         $this->user = $user;
         $this->name = $subscription_name;
@@ -66,20 +74,20 @@ class SubscriptionBuilder
         $this->plan_code = $plan_code;
         $this->payment_method = $payment_method;
         $this->amount = $amount;
+        $this->coupon_code = $coupon_code;
     }
 
     /**
      * Create a new Moip subscription.
      *
      * @param  array|\stdClass  $options
-     * @param  string  $amount
      * @return \Potelo\MoPayment\Subscription
      */
-    public function create($options = [], $amount = '')
+    public function create($options = [])
     {
         $customer = $this->getMoipCustomer($options);
 
-        $subscription_moip = $this->user->createMoipSubscription($this->buildPayload($customer->code, $amount));
+        $subscription_moip = $this->user->createMoipSubscription($this->buildPayload($customer->code));
 
         $subscription = $this->user->subscriptions()->create([
             'name' => $this->name,
@@ -124,6 +132,14 @@ class SubscriptionBuilder
 
         if($this->amount) {
             $payload['amount'] = $this->amount;
+        }
+
+        if($this->coupon_code) {
+            $payload['coupon'] = [
+                'code' => $this->coupon_code
+            ];
+        } else {
+            $payload['payment_method'] = $this->payment_method;
         }
 
         return $payload;
