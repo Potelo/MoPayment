@@ -71,15 +71,7 @@ abstract class ApiResource extends MoipObject
             $options['json'] = $params;
         }
 
-        try {
-            $response = $client->request($method, $endpoint, $options);
-        } catch (RequestException $e) {
-            if($e->getCode() == 404) {
-                throw $e;
-            }
-
-            throw new \Exception($e->getResponse()->getBody()->getContents());
-        }
+        $response = $client->request($method, $endpoint, $options);
 
         return $response;
     }
