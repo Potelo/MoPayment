@@ -81,7 +81,7 @@ class SubscriptionBuilder
      * Create a new Moip subscription.
      *
      * @param  array|\stdClass  $options
-     * @return \Potelo\MoPayment\Subscription
+     * @return \Potelo\MoPayment\Moip\Subscription
      */
     public function create($options = [])
     {
@@ -97,7 +97,7 @@ class SubscriptionBuilder
             'ends_at' => null,
         ]);
 
-        return $subscription;
+        return $subscription_moip;
     }
 
     /**
