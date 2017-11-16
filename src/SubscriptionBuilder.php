@@ -57,6 +57,13 @@ class SubscriptionBuilder
     protected $coupon_code;
 
     /**
+     * Extra fields to subscription table
+     *
+     * @var string
+     */
+    protected $table_fields;
+
+    /**
      * Create a new subscription builder instance.
      *
      * @param  mixed  $user
@@ -65,8 +72,9 @@ class SubscriptionBuilder
      * @param  string  $payment_method
      * @param  string  $amount
      * @param  string  $coupon_code
+     * @param  array  $table_fields
      */
-    public function __construct($user, $subscription_name, $plan_code, $payment_method, $amount = null, $coupon_code = null)
+    public function __construct($user, $subscription_name, $plan_code, $payment_method, $amount = null, $coupon_code = null, $table_fields = [])
     {
         $this->user = $user;
         $this->name = $subscription_name;
@@ -75,6 +83,7 @@ class SubscriptionBuilder
         $this->payment_method = $payment_method;
         $this->amount = $amount;
         $this->coupon_code = $coupon_code;
+        $this->table_fields = $table_fields;
     }
 
     /**
@@ -89,13 +98,19 @@ class SubscriptionBuilder
 
         $subscription_moip = $this->user->createMoipSubscription($this->buildPayload($customer->code));
 
-        $subscription = $this->user->subscriptions()->create([
+        $attributes = [
             'name' => $this->name,
             'moip_plan' => $this->plan_code,
             'moip_id' => $this->code,
             'trial_ends_at' => $subscription_moip->status == 'TRIAL' ? Carbon::create($subscription_moip->trial->end->year, $subscription_moip->trial->end->month, $subscription_moip->trial->end->day) : null,
             'ends_at' => null,
-        ]);
+        ];
+
+        if(count($this->table_fields)) {
+            $attributes = array_merge($attributes, $this->table_fields);
+        }
+
+        $subscription = $this->user->subscriptions()->create($attributes);
 
         return $subscription_moip;
     }
