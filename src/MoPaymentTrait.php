@@ -34,11 +34,12 @@ trait MoPaymentTrait
      * @param string  $payment_mode
      * @param string  $amount
      * @param string  $coupon_code
+     * @param array  $table_fields
      * @return \Potelo\MoPayment\SubscriptionBuilder
      */
-    public function newSubscription($subscription_name, $plan_code, $payment_mode, $amount = null, $coupon_code = null)
+    public function newSubscription($subscription_name, $plan_code, $payment_mode, $amount = null, $coupon_code = null, $table_fields = [])
     {
-        return new SubscriptionBuilder($this, $subscription_name, $plan_code, $payment_mode, $amount, $coupon_code);
+        return new SubscriptionBuilder($this, $subscription_name, $plan_code, $payment_mode, $amount, $coupon_code, $table_fields);
     }
 
     /**
