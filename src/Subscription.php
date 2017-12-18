@@ -122,7 +122,7 @@ class Subscription extends Model
         // and make that the end of the grace period for this current user.
         if ($this->onTrial()) {
             $this->ends_at = $this->trial_ends_at;
-        } elseif(isset($subscription->next_invoice_date)) {
+        } elseif(isset($subscription->next_invoice_date) && $subscription->status == 'ACTIVE') {
             $this->ends_at = Carbon::create($subscription->next_invoice_date->year, $subscription->next_invoice_date->month, $subscription->next_invoice_date->day);
         } else {
             $this->ends_at = Carbon::now();
