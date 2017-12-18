@@ -8,6 +8,7 @@ use Potelo\MoPayment\Moip\Customer;
 use Potelo\MoPayment\Moip\Moip;
 use Potelo\MoPayment\Moip\Subscription as Moip_Subscription;
 use Potelo\MoPayment\Moip\Invoice as Moip_Invoice;
+use Potelo\MoPayment\Moip\Payment as Moip_Payment;
 
 trait MoPaymentTrait
 {
@@ -264,5 +265,20 @@ trait MoPaymentTrait
         $customer = $this->asMoipCustomer();
 
         $customer->updateCard($this->moip_id, $params);
+    }
+
+    /**
+     * Get a collection of the entity's patments.
+     *
+     * @param $invoice_code
+     * @return \Illuminate\Support\Collection
+     */
+    public function payments($invoice_code)
+    {
+        Moip::init($this->getApiToken(), $this->getApiKey(), $this->getEndpointEnvironment());
+
+        $moip_payments = Moip_Payment::search($invoice_code);
+
+        return new Collection($moip_payments);
     }
 }
