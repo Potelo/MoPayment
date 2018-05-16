@@ -15,7 +15,7 @@ class Subscription extends ApiResource
      */
     public static function create($params, $query_data = null)
     {
-        $new_customer = !(count($params['customer']) == 1 && key_exists('code', $params['customer'])) ? 'true' : 'false';
+        $new_customer = !array_key_exists('code', $params['customer']) ? 'true' : 'false';
 
         $query_data = [
             'new_customer' => $new_customer
