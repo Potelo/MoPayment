@@ -123,7 +123,17 @@ class SubscriptionBuilder
      */
     protected function getMoipCustomer($options = [])
     {
-        return $this->user->moip_id ? $this->user->asMoipCustomer() : $this->user->createAsMoipCustomer($options);
+        if($this->user->moip_id) {
+            $user = $this->user->asMoipCustomer();
+
+            if (array_key_exists('billing_info', $options)) {
+                $user->updateCard($this->user->moip_id, $options['billing_info']);
+            }
+
+            return $user;
+        }
+
+        return $this->user->createAsMoipCustomer($options);
     }
 
     /**
