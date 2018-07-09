@@ -174,8 +174,6 @@ class Subscription extends Model
      */
     public function asMoipSubscription()
     {
-        $user = $this->user;
-
-        return $user->getMoipSubscription($this->{$this->moipSubscriptionModelIdColumn});
+        return $this->user->getMoipSubscription($this->{$this->moipSubscriptionModelIdColumn});
     }
 }
