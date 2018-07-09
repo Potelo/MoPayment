@@ -57,7 +57,7 @@ trait MoPaymentTrait
 
         $customer = Customer::create($options);
 
-        $this->moip_id = $customer->code;
+        $this->setMoipUserId($customer->code);
 
         $this->save();
 
@@ -74,7 +74,7 @@ trait MoPaymentTrait
         Moip::init($this->getApiToken(), $this->getApiKey(), $this->getEndpointEnvironment());
 
         try {
-            return Customer::get($this->moip_id);
+            return Customer::get($this->getMoipUserId());
         } catch (RequestException $e) {
             if($e->getCode() == 404) {
                 return null;
@@ -144,7 +144,9 @@ trait MoPaymentTrait
      */
     public function subscriptions()
     {
-        return $this->hasMany(Subscription::class, $this->getForeignKey())->orderBy('created_at', 'desc');
+        $column = getenv('MOIP_MODEL_FOREIGN_KEY') ?: config('services.moip.model_foreign_key', 'user_id');
+
+        return $this->hasMany(Subscription::class, $column)->orderBy('created_at', 'desc');
     }
 
     /**
@@ -264,7 +266,7 @@ trait MoPaymentTrait
     {
         $customer = $this->asMoipCustomer();
 
-        $customer->updateCard($this->moip_id, $params);
+        $customer->updateCard($this->getMoipUserId(), $params);
     }
 
     /**
@@ -280,5 +282,30 @@ trait MoPaymentTrait
         $moip_payments = Moip_Payment::search($invoice_code);
 
         return new Collection($moip_payments);
+    }
+
+    /**
+     * Get the Moip User Id.
+     *
+     * @return string
+     */
+    public function getMoipUserId()
+    {
+        $column = getenv('MOIP_USER_MODEL_COLUMN') ?: config('services.moip.user_model_column', 'moip_id');
+
+        return $this->{$column};
+    }
+
+    /**
+     * Set the Moip User Id.
+     *
+     * @param string $moipId
+     * @return string
+     */
+    public function setMoipUserId($moipId)
+    {
+        $column = getenv('MOIP_USER_MODEL_COLUMN') ?: config('services.moip.user_model_column', 'moip_id');
+
+        $this->{$column} = $moipId;
     }
 }

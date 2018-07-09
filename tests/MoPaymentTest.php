@@ -9,6 +9,13 @@ use Potelo\MoPayment\Moip\Subscription as Moip_Subscription;
 
 class MoPaymentTest extends TestCase
 {
+
+    protected $moipUserModelColumn;
+
+    protected $moipSubscriptionModelIdColumn;
+
+    protected $moipSubscriptionModelPlanColumn;
+
     public static function setUpBeforeClass()
     {
         if (file_exists(__DIR__.'/../.env')) {
@@ -42,21 +49,26 @@ class MoPaymentTest extends TestCase
         $db->bootEloquent();
         $db->setAsGlobal();
 
+        $this->moipUserModelColumn = getenv('MOIP_USER_MODEL_COLUMN') ?: 'moip_id';
+
         $this->schema()->create('users', function ($table) {
             $table->increments('id');
             $table->string('name');
             $table->string('email');
             $table->string('cpf');
-            $table->string('moip_id')->unique()->nullable();
+            $table->string($this->moipUserModelColumn)->unique()->nullable();
             $table->timestamps();
         });
+
+        $this->moipSubscriptionModelIdColumn = getenv('MOIP_SUBSCRIPTION_MODEL_ID_COLUMN') ?: 'moip_id';
+        $this->moipSubscriptionModelPlanColumn = getenv('MOIP_SUBSCRIPTION_MODEL_PLAN_COLUMN') ?: 'moip_plan';
 
         $this->schema()->create('subscriptions', function ($table) {
             $table->increments('id');
             $table->string('name');
             $table->integer('user_id');
-            $table->string('moip_id')->unique();
-            $table->string('moip_plan');
+            $table->string($this->moipSubscriptionModelIdColumn)->unique();
+            $table->string($this->moipSubscriptionModelPlanColumn);
             $table->timestamp('trial_ends_at')->nullable();
             $table->timestamp('ends_at')->nullable();
             $table->timestamps();
@@ -71,20 +83,54 @@ class MoPaymentTest extends TestCase
 
     public function testExistingUserCanSubcribe()
     {
-        $user = User::create([
+        $this->moipUserModelColumn = getenv('MOIP_USER_MODEL_COLUMN') ?: 'moip_id';
+
+        $userData = [
             'name' => 'Joao Assinante',
             'email' => 'joao_assinante@example.com',
             'cpf' => '01234567891',
-            'moip_id' => 'some_existing_code',
-        ]);
+        ];
 
-        $plan_code = '00000';
+        $user = User::create($userData);
 
-        $subscription = $user->newSubscription('Name', $plan_code, 'CREDIT_CARD')->create();
+        $customerData = [
+            'fullname' => 'Joao Assinante',
+            'email' => 'joao_assinante@example.com',
+            'phone_area_code' => '11',
+            'phone_number' => '999887766',
+            'cpf' => '01234567891',
+            'birthdate_day' => '2',
+            'birthdate_month' => '2',
+            'birthdate_year' => '2000',
+            'address' => [
+                'street' => 'Rua dos Pagadores',
+                'number' => '1000',
+                'complement' => 'Casa',
+                'district' => 'Bairro dos Pagadores',
+                'city' => 'São Paulo',
+                'state' => 'SP',
+                'country' => 'BRA',
+                'zipcode' => '05015010',
+            ],
+            'billing_info' => [
+                'credit_card' => [
+                    'holder_name' => 'Joao Assinante',
+                    'number' => '4111111111111111',
+                    'expiration_month' => '08',
+                    'expiration_year' => '20'
+                ]
+            ]
+        ];
 
-        $subscription_retrieved = Moip_Subscription::get($subscription->moip_id);
+        $customer = $user->createAsMoipCustomer($customerData);
 
-        $this->assertEquals($subscription->moip_id, $subscription_retrieved->code);
+        $plan_code = '1500323600';
+
+        $subscriptionMoip = $user->newSubscription('Name', $plan_code, 'CREDIT_CARD')->create();
+
+        $subscription_retrieved = Moip_Subscription::get($subscriptionMoip->code);
+
+        $this->assertEquals($subscriptionMoip->code, $subscription_retrieved->code);
     }
 
     public function testNonExistingUserCanSubcribe()
@@ -97,7 +143,7 @@ class MoPaymentTest extends TestCase
 
         $plan_code = '1500323600';
 
-        $subscription = $user->newSubscription('Monitoramentos', $plan_code, 'CREDIT_CARD')
+        $subscriptionMoip = $user->newSubscription('Monitoramentos', $plan_code, 'CREDIT_CARD')
             ->create([
                 'fullname' => 'Joao Assinante',
                 'email' => 'joaoassinante@example.com',
@@ -122,16 +168,16 @@ class MoPaymentTest extends TestCase
                         'holder_name' => 'Joao Com Cartao',
                         'number' => '4111111111111111',
                         'expiration_month' => '04',
-                        'expiration_year' => '18',
+                        'expiration_year' => '20',
                     ]
                 ]
             ]);
 
-        $subscription_retrieved = Moip_Subscription::get($subscription->moip_id);
-        $this->assertEquals($subscription->moip_id, $subscription_retrieved->code);
+        $subscription_retrieved = Moip_Subscription::get($subscriptionMoip->code);
+        $this->assertEquals($subscriptionMoip->code, $subscription_retrieved->code);
 
-        $customer_retrieved = Moip_Customer::get($user->moip_id);
-        $this->assertEquals($user->moip_id, $customer_retrieved->code);
+        $customer_retrieved = Moip_Customer::get($user->{$this->moipUserModelColumn});
+        $this->assertEquals($user->{$this->moipUserModelColumn}, $customer_retrieved->code);
 
         // testes usuario
         $this->assertTrue($user->subscribed('Monitoramentos'));
@@ -141,20 +187,20 @@ class MoPaymentTest extends TestCase
         $this->assertTrue($user->onPlan($plan_code));
 
         // testes assinatura
-        $this->assertTrue($subscription->valid());
-        $this->assertTrue($subscription->active());
-        $this->assertFalse($subscription->suspended());
-        $this->assertTrue($subscription->onTrial());
-        $this->assertFalse($subscription->onGracePeriod());
+        $this->assertTrue($user->subscription('Monitoramentos')->valid());
+        $this->assertTrue($user->subscription('Monitoramentos')->active());
+        $this->assertFalse($user->subscription('Monitoramentos')->suspended());
+        $this->assertTrue($user->subscription('Monitoramentos')->onTrial());
+        $this->assertFalse($user->subscription('Monitoramentos')->onGracePeriod());
 
         // cancelar assinatura
-        $subscription->suspend();
-        $this->assertTrue($subscription->suspended());
+        $user->subscription('Monitoramentos')->suspend();
+        $this->assertTrue($user->subscription('Monitoramentos')->suspended());
 
         // reativar assinatura
-        $subscription->resume();
-        $this->assertTrue($subscription->active());
-        $this->assertFalse($subscription->suspended());
+        $user->subscription('Monitoramentos')->resume();
+        $this->assertTrue($user->subscription('Monitoramentos')->active());
+        $this->assertFalse($user->subscription('Monitoramentos')->suspended());
     }
 }
 
@@ -167,5 +213,14 @@ class User extends \Illuminate\Database\Eloquent\Model
      *
      * @var array
      */
-    protected $fillable = ['name', 'moip_id'];
+    protected $fillable;
+
+    public function __construct(array $attributes = [])
+    {
+        $moipUserModelColumn = getenv('MOIP_USER_MODEL_COLUMN') ?: 'moip_id';
+
+        $this->fillable = ['name', $moipUserModelColumn];
+
+        parent::__construct($attributes);
+    }
 }

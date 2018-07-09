@@ -94,14 +94,17 @@ class SubscriptionBuilder
      */
     public function create($options = [])
     {
+        $moipSubscriptionModelIdColumn = getenv('MOIP_SUBSCRIPTION_MODEL_ID_COLUMN') ?: config('services.moip.subscription_model_id_column', 'moip_id');
+        $moipSubscriptionModelPlanColumn = getenv('MOIP_SUBSCRIPTION_MODEL_PLAN_COLUMN') ?: config('services.moip.subscription_model_plan_column', 'moip_plan');
+
         $customer = $this->getMoipCustomer($options);
 
         $subscription_moip = $this->user->createMoipSubscription($this->buildPayload($customer->code));
 
         $attributes = [
             'name' => $this->name,
-            'moip_plan' => $this->plan_code,
-            'moip_id' => $this->code,
+            $moipSubscriptionModelPlanColumn => $this->plan_code,
+            $moipSubscriptionModelIdColumn => $this->code,
             'trial_ends_at' => $subscription_moip->status == 'TRIAL' ? Carbon::create($subscription_moip->trial->end->year, $subscription_moip->trial->end->month, $subscription_moip->trial->end->day) : null,
             'ends_at' => null,
         ];
@@ -123,11 +126,11 @@ class SubscriptionBuilder
      */
     protected function getMoipCustomer($options = [])
     {
-        if($this->user->moip_id) {
+        if($this->user->getMoipUserId()) {
             $user = $this->user->asMoipCustomer();
 
             if (array_key_exists('billing_info', $options)) {
-                $user->updateCard($this->user->moip_id, $options['billing_info']);
+                $user->updateCard($this->user->getMoipUserId(), $options['billing_info']);
             }
 
             return $user;

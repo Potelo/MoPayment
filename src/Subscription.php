@@ -25,6 +25,10 @@ class Subscription extends Model
         'created_at', 'updated_at',
     ];
 
+    protected $moipSubscriptionModelIdColumn;
+
+    protected $moipSubscriptionModelPlanColumn;
+
     /**
      * Create a new Eloquent model instance.
      *
@@ -34,6 +38,8 @@ class Subscription extends Model
     public function __construct(array $attributes = []) {
         parent::__construct($attributes);
         $this->table = getenv('MOPAYMENT_SIGNATURE_TABLE') ?: config('services.moip.signature_table', 'subscriptions');
+        $this->moipSubscriptionModelIdColumn = getenv('MOIP_SUBSCRIPTION_MODEL_ID_COLUMN') ?: config('services.moip.subscription_model_id_column', 'moip_id');
+        $this->moipSubscriptionModelPlanColumn = getenv('MOIP_SUBSCRIPTION_MODEL_PLAN_COLUMN') ?: config('services.moip.subscription_model_plan_column', 'moip_plan');
     }
 
     /**
@@ -42,10 +48,11 @@ class Subscription extends Model
     public function user()
     {
         $model = getenv('MOIP_MODEL') ?: config('services.moip.model', 'App\\User');
+        $column = getenv('MOIP_MODEL_FOREIGN_KEY') ?: config('services.moip.model_foreign_key', 'user_id');
 
         $model = new $model;
 
-        return $this->belongsTo(get_class($model), $model->getForeignKey());
+        return $this->belongsTo(get_class($model), $column);
     }
 
     /**
@@ -167,6 +174,8 @@ class Subscription extends Model
      */
     public function asMoipSubscription()
     {
-        return $this->user->getMoipSubscription($this->moip_id);
+        $user = $this->user;
+
+        return $user->getMoipSubscription($this->{$this->moipSubscriptionModelIdColumn});
     }
 }

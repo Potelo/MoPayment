@@ -27,5 +27,12 @@
             "Potelo\\MoPayment\\Tests\\": "tests/"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Potelo\\MoPayment\\MoPaymentServiceProvider"
+            ]
+        }
+    },
     "minimum-stability": "dev"
 }
