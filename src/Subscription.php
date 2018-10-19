@@ -52,6 +52,10 @@ class Subscription extends Model
 
         $model = new $model;
 
+        if (in_array("Illuminate\Database\Eloquent\SoftDeletes", class_uses($model))) {
+            return $this->belongsTo(get_class($model), $column)->withTrashed();
+        }
+
         return $this->belongsTo(get_class($model), $column);
     }
 
