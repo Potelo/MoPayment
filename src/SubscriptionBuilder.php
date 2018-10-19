@@ -164,4 +164,44 @@ class SubscriptionBuilder
 
         return $payload;
     }
+
+
+    /**
+     * The coupon code being applied to the subscription.
+     *
+     * @param int $amount
+     * @return $this
+     */
+    public function amount($amount)
+    {
+        $this->amount = $amount;
+
+        return $this;
+    }
+
+    /**
+     * The coupon code being applied to the subscription.
+     *
+     * @param string $coupon
+     * @return $this
+     */
+    public function coupon($coupon)
+    {
+        $this->coupon = $coupon;
+
+        return $this;
+    }
+
+    /**
+     * Add values to extra table fields
+     *
+     * @param array $extraTableFields
+     * @return $this
+     */
+    public function extraTableFields($extraTableFields)
+    {
+        $this->extraTableFields = array_merge($this->extraTableFields, $extraTableFields);
+
+        return $this;
+    }
 }
