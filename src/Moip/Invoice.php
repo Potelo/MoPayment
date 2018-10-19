@@ -5,7 +5,7 @@ namespace Potelo\MoPayment\Moip;
 
 class Invoice extends ApiResource
 {
-    protected static $resource_path = '/invoices';
+    protected static $resourcePath = '/invoices';
 
     /**
      * @param string $code The code of the invoice to retrieve
@@ -20,12 +20,12 @@ class Invoice extends ApiResource
     /**
      * Get a colletion of invoices from a subscription
      *
-     * @param $subscription_code
+     * @param $subscriptionCode
      * @return array|MoipObject
      */
-    public static function search($subscription_code)
+    public static function search($subscriptionCode)
     {
-        $endpoint = Moip::getEndpoint() . '/subscriptions/' . $subscription_code . '/invoices';
+        $endpoint = Moip::getEndpoint() . '/subscriptions/' . $subscriptionCode . '/invoices';
 
         $response = parent::request('GET', $endpoint);
 

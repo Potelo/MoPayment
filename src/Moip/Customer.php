@@ -5,23 +5,23 @@ namespace Potelo\MoPayment\Moip;
 
 class Customer extends ApiResource
 {
-    protected static $resource_path = '/customers';
+    protected static $resourcePath = '/customers';
 
     /**
      * @param array $params
-     * @param array $query_data
+     * @param array $queryData
      *
      * @return \Potelo\MoPayment\Moip\Customer
      */
-    public static function create($params, $query_data = null)
+    public static function create($params, $queryData = null)
     {
-        $query_data = [
+        $queryData = [
             'new_vault' => key_exists('billing_info', $params) ? 'true' : 'false'
         ];
 
-        $query = $query_data ? '?' . http_build_query($query_data) : '';
+        $query = $queryData ? '?' . http_build_query($queryData) : '';
 
-        $endpoint = Moip::getEndpoint() . static::$resource_path . $query;
+        $endpoint = Moip::getEndpoint() . static::$resourcePath . $query;
 
         self::request('POST', $endpoint, $params);
 
@@ -50,7 +50,7 @@ class Customer extends ApiResource
 
     public static function updateCard($code, $params)
     {
-        $endpoint = Moip::getEndpoint() . static::$resource_path . '/' . $code . '/billing_infos';
+        $endpoint = Moip::getEndpoint() . static::$resourcePath . '/' . $code . '/billing_infos';
 
         parent::request('PUT', $endpoint, $params);
 

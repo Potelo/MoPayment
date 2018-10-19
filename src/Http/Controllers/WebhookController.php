@@ -9,6 +9,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class WebhookController extends Controller
 {
+    protected $moipSubscriptionModelIdColumn;
+
+    public function __construct()
+    {
+        $this->moipSubscriptionModelIdColumn = getenv('MOIP_SUBSCRIPTION_MODEL_ID_COLUMN') ?: config('services.moip.subscription_model_id_column', 'moip_id');
+    }
+
     /**
      * Handle a Moip webhook call.
      *
@@ -36,7 +43,7 @@ class WebhookController extends Controller
      */
     protected function handleSubscriptionSuspended(array $payload)
     {
-        $subscription = Subscription::where('moip_id', $payload['resource']['code'])->first();
+        $subscription = Subscription::where($this->moipSubscriptionModelIdColumn, $payload['resource']['code'])->first();
 
         $subscription->markAsCancelled();
 

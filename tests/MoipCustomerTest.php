@@ -6,14 +6,14 @@ use Potelo\MoPayment\Moip\Customer;
 
 class MoipCustomerTest extends TestCase
 {
-    protected $api_token;
-    protected $api_key;
+    protected $apiToken;
+    protected $apiKey;
     protected $env;
 
     protected function setUp()
     {
-        $this->api_token = '';
-        $this->api_key = '';
+        $this->apiToken = '';
+        $this->apiKey = '';
         $this->env = 'sandbox';
     }
 
@@ -58,7 +58,7 @@ class MoipCustomerTest extends TestCase
     {
         $params = $this->customerParams();
 
-        Moip::init($this->api_token, $this->api_key, $this->env);
+        Moip::init($this->apiToken, $this->apiKey, $this->env);
 
         $customer = Customer::create($params);
 
@@ -79,7 +79,7 @@ class MoipCustomerTest extends TestCase
             ]
         ];
 
-        Moip::init($this->api_token, $this->api_key, $this->env);
+        Moip::init($this->apiToken, $this->apiKey, $this->env);
 
         $customer = Customer::create($params);
 
@@ -94,7 +94,7 @@ class MoipCustomerTest extends TestCase
     {
         $params = $this->customerParams();
 
-        Moip::init($this->api_token, $this->api_key, $this->env);
+        Moip::init($this->apiToken, $this->apiKey, $this->env);
 
         $customer = Customer::create($params);
 
@@ -104,7 +104,7 @@ class MoipCustomerTest extends TestCase
 
     public function testCanGetCustomersList()
     {
-        Moip::init($this->api_token, $this->api_key, $this->env);
+        Moip::init($this->apiToken, $this->apiKey, $this->env);
 
         $customers = Customer::all();
 
@@ -115,7 +115,7 @@ class MoipCustomerTest extends TestCase
     {
         $params = $this->customerParams();
 
-        Moip::init($this->api_token, $this->api_key, $this->env);
+        Moip::init($this->apiToken, $this->apiKey, $this->env);
 
         $customer = Customer::create($params);
 
@@ -132,7 +132,7 @@ class MoipCustomerTest extends TestCase
     {
         $params = $this->customerParams();
 
-        Moip::init($this->api_token, $this->api_key, $this->env);
+        Moip::init($this->apiToken, $this->apiKey, $this->env);
 
         $customer = Customer::create($params);
 
@@ -154,7 +154,7 @@ class MoipCustomerTest extends TestCase
     {
         $this->expectExceptionCode(404);
 
-        Moip::init($this->api_token, $this->api_key, $this->env);
+        Moip::init($this->apiToken, $this->apiKey, $this->env);
 
         $customer = Customer::get('non_existent_code');
     }
