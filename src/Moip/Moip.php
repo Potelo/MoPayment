@@ -30,8 +30,8 @@ abstract class Moip
 
     private static $endpoint = null;
 
-    private static $api_token = null;
-    private static $api_key = null;
+    private static $apiToken = null;
+    private static $apiKey = null;
 
     /**
      * Authorization hash
@@ -40,31 +40,31 @@ abstract class Moip
      */
     private static $api_authorization;
 
-    public static function setApiToken( $api_token )
+    public static function setApiToken($apiToken)
     {
-        self::$api_key = $api_token;
+        self::$apiKey = $apiToken;
     }
 
     public static function getApiToken()
     {
-        return self::$api_token;
+        return self::$apiToken;
     }
 
-    public static function setApiKey( $api_key )
+    public static function setapiKey($apiKey)
     {
-        self::$api_key = $api_key;
+        self::$apiKey = $apiKey;
     }
 
-    public static function getApiKey()
+    public static function getapiKey()
     {
-        return self::$api_key;
+        return self::$apiKey;
     }
 
-    public static function setApiAuthorization( $api_token, $api_key )
+    public static function setApiAuthorization($apiToken, $apiKey)
     {
-        self::$api_key = $api_token;
-        self::$api_key = $api_key;
-        self::$api_authorization = base64_encode($api_token.':'.$api_key);
+        self::$apiToken = $apiToken;
+        self::$apiKey = $apiKey;
+        self::$api_authorization = base64_encode($apiToken.':'.$apiKey);
     }
 
     public static function getApiAuthorization()
@@ -72,7 +72,7 @@ abstract class Moip
         return self::$api_authorization;
     }
 
-    public static function setEndpoint( $env )
+    public static function setEndpoint($env)
     {
         if( $env == 'production' ) {
             self::$endpoint = self::ENDPOINT_PRODUCTION;
@@ -88,7 +88,7 @@ abstract class Moip
         return self::$endpoint;
     }
 
-    public static function init($api_token, $api_key, $env = 'production')
+    public static function init($apiToken, $apiKey, $env = 'production')
     {
         if( $env == 'production' ) {
             self::$endpoint = self::ENDPOINT_PRODUCTION . self::VERSION;
@@ -98,8 +98,8 @@ abstract class Moip
             self::$endpoint = self::ENDPOINT_SANDBOX . self::VERSION;
         }
 
-        self::$api_token = $api_token;
-        self::$api_key = $api_key;
-        self::$api_authorization = base64_encode(self::$api_token.':'.self::$api_key);
+        self::$apiToken = $apiToken;
+        self::$apiKey = $apiKey;
+        self::$api_authorization = base64_encode(self::$apiToken.':'.self::$apiKey);
     }
 }

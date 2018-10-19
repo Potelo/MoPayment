@@ -11,11 +11,11 @@ use GuzzleHttp\Exception\RequestException;
  */
 abstract class ApiResource extends MoipObject
 {
-    protected static function create($params, $query_data = null)
+    protected static function create($params, $queryData = null)
     {
-        $query = $query_data ? '?' . http_build_query($query_data) : '';
+        $query = $queryData ? '?' . http_build_query($queryData) : '';
 
-        $endpoint = Moip::getEndpoint() . static::$resource_path . $query;
+        $endpoint = Moip::getEndpoint() . static::$resourcePath . $query;
 
         $response = self::request('POST', $endpoint, $params);
 
@@ -26,7 +26,7 @@ abstract class ApiResource extends MoipObject
 
     protected static function get($code)
     {
-        $endpoint = Moip::getEndpoint() . static::$resource_path . '/' . $code;
+        $endpoint = Moip::getEndpoint() . static::$resourcePath . '/' . $code;
 
         $response = self::request('GET', $endpoint);
 
@@ -37,7 +37,7 @@ abstract class ApiResource extends MoipObject
 
     protected static function update($code, $params)
     {
-        $endpoint = Moip::getEndpoint() . static::$resource_path . '/' . $code;
+        $endpoint = Moip::getEndpoint() . static::$resourcePath . '/' . $code;
 
         self::request('PUT', $endpoint, $params);
 
@@ -46,7 +46,7 @@ abstract class ApiResource extends MoipObject
 
     protected static function all()
     {
-        $endpoint = Moip::getEndpoint() . static::$resource_path;
+        $endpoint = Moip::getEndpoint() . static::$resourcePath;
 
         $response = self::request('GET', $endpoint);
 

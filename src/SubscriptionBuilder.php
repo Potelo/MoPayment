@@ -40,50 +40,44 @@ class SubscriptionBuilder
      *
      * @var string
      */
-    protected $plan_code;
+    protected $plan;
 
     /**
      * The payment method.
      *
      * @var string
      */
-    protected $payment_method;
+    protected $paymentMethod;
 
     /**
      * The code of the coupon to be applied
      *
      * @var string
      */
-    protected $coupon_code;
+    protected $coupon;
 
     /**
      * Extra fields to subscription table
      *
-     * @var string
+     * @var array
      */
-    protected $table_fields;
+    protected $extraTableFields = [];
 
     /**
      * Create a new subscription builder instance.
      *
      * @param  mixed  $user
-     * @param  string  $subscription_name
-     * @param  string  $plan_code
-     * @param  string  $payment_method
-     * @param  string  $amount
-     * @param  string  $coupon_code
-     * @param  array  $table_fields
+     * @param  string  $subscriptionName
+     * @param  string  $plan
+     * @param  string  $paymentMethod
      */
-    public function __construct($user, $subscription_name, $plan_code, $payment_method, $amount = null, $coupon_code = null, $table_fields = [])
+    public function __construct($user, $subscriptionName, $plan, $paymentMethod)
     {
         $this->user = $user;
-        $this->name = $subscription_name;
+        $this->name = $subscriptionName;
         $this->code = uniqid();
-        $this->plan_code = $plan_code;
-        $this->payment_method = $payment_method;
-        $this->amount = $amount;
-        $this->coupon_code = $coupon_code;
-        $this->table_fields = $table_fields;
+        $this->plan = $plan;
+        $this->paymentMethod = $paymentMethod;
     }
 
     /**
@@ -103,14 +97,14 @@ class SubscriptionBuilder
 
         $attributes = [
             'name' => $this->name,
-            $moipSubscriptionModelPlanColumn => $this->plan_code,
+            $moipSubscriptionModelPlanColumn => $this->plan,
             $moipSubscriptionModelIdColumn => $this->code,
             'trial_ends_at' => $subscription_moip->status == 'TRIAL' ? Carbon::create($subscription_moip->trial->end->year, $subscription_moip->trial->end->month, $subscription_moip->trial->end->day) : null,
             'ends_at' => null,
         ];
 
-        if(count($this->table_fields)) {
-            $attributes = array_merge($attributes, $this->table_fields);
+        if(count($this->extraTableFields)) {
+            $attributes = array_merge($attributes, $this->extraTableFields);
         }
 
         $subscription = $this->user->subscriptions()->create($attributes);
@@ -126,7 +120,7 @@ class SubscriptionBuilder
      */
     protected function getMoipCustomer($options = [])
     {
-        if($this->user->getMoipUserId()) {
+        if ($this->user->getMoipUserId()) {
             $user = $this->user->asMoipCustomer();
 
             if (array_key_exists('billing_info', $options)) {
@@ -149,25 +143,23 @@ class SubscriptionBuilder
     {
         $payload = [
             'code' => $this->code,
-            'payment_method' => $this->payment_method,
+            'payment_method' => $this->paymentMethod,
             'plan' => [
-                'code' => $this->plan_code
+                'code' => $this->plan
             ],
             'customer' => [
                 'code' => $customer_code
             ]
         ];
 
-        if($this->amount) {
+        if ($this->amount) {
             $payload['amount'] = $this->amount;
         }
 
-        if($this->coupon_code) {
+        if ($this->coupon) {
             $payload['coupon'] = [
-                'code' => $this->coupon_code
+                'code' => $this->coupon
             ];
-        } else {
-            $payload['payment_method'] = $this->payment_method;
         }
 
         return $payload;

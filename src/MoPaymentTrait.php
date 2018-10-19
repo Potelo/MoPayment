@@ -18,29 +18,26 @@ trait MoPaymentTrait
      * @var string
      */
 
-    protected static $api_token;
+    protected static $apiToken;
 
     /**
      * The Moip API key.
      *
      * @var string
      */
-    protected static $api_key;
+    protected static $apiKey;
 
     /**
      * Begin creating a new subscription.
      *
-     * @param string  $subscription_name
+     * @param string  $subscriptionName
      * @param string  $plan_code
      * @param string  $payment_mode
-     * @param string  $amount
-     * @param string  $coupon_code
-     * @param array  $table_fields
      * @return \Potelo\MoPayment\SubscriptionBuilder
      */
-    public function newSubscription($subscription_name, $plan_code, $payment_mode, $amount = null, $coupon_code = null, $table_fields = [])
+    public function newSubscription($subscriptionName, $plan_code, $payment_mode)
     {
-        return new SubscriptionBuilder($this, $subscription_name, $plan_code, $payment_mode, $amount, $coupon_code, $table_fields);
+        return new SubscriptionBuilder($this, $subscriptionName, $plan_code, $payment_mode);
     }
 
     /**
@@ -91,8 +88,8 @@ trait MoPaymentTrait
      */
     public static function getApiKey()
     {
-        if (static::$api_key = getenv('MOIP_APIKEY')) {
-            return static::$api_key;
+        if (static::$apiKey = getenv('MOIP_APIKEY')) {
+            return static::$apiKey;
         }
 
         return config('services.moip.key');
@@ -105,8 +102,8 @@ trait MoPaymentTrait
      */
     public static function getApiToken()
     {
-        if (static::$api_token = getenv('MOIP_APITOKEN')) {
-            return static::$api_token;
+        if (static::$apiToken = getenv('MOIP_APITOKEN')) {
+            return static::$apiToken;
         }
 
         return config('services.moip.token');
