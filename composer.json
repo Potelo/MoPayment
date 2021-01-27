@@ -1,38 +1,43 @@
 {
-    "name": "potelo/mo-payment",
-    "description": "MoPayment fornece uma interface para controlar pagamentos no moip.com.br",
-    "keywords": ["laravel", "moip", "billing", "pagamentos"],
-    "license": "MIT",
-    "support": {
-        "issues": "https://github.com/Potelo/mo-payment/issues",
-        "source": "https://github.com/Potelo/mo-payment"
-    },
-    "authors": [
-        {
-            "name": "Marivaldo Junior",
-            "email": "marivaldo@potelo.com.br"
-        }
-    ],
-    "require": {
-        "php": ">=5.6.4",
-        "guzzlehttp/guzzle": "^6.3"
-    },
-    "autoload": {
-        "psr-4": {
-            "Potelo\\MoPayment\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Potelo\\MoPayment\\Tests\\": "tests/"
-        }
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Potelo\\MoPayment\\MoPaymentServiceProvider"
-            ]
-        }
-    },
-    "minimum-stability": "dev"
+  "name": "potelo/mo-payment",
+  "description": "MoPayment fornece uma interface para controlar pagamentos no moip.com.br",
+  "keywords": [
+    "laravel",
+    "moip",
+    "billing",
+    "pagamentos"
+  ],
+  "license": "MIT",
+  "support": {
+    "issues": "https://github.com/Potelo/mo-payment/issues",
+    "source": "https://github.com/Potelo/mo-payment"
+  },
+  "authors": [
+    {
+      "name": "Marivaldo Junior",
+      "email": "marivaldo@potelo.com.br"
+    }
+  ],
+  "require": {
+    "php": ">=5.6.4",
+    "guzzlehttp/guzzle": "^7.0.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Potelo\\MoPayment\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Potelo\\MoPayment\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Potelo\\MoPayment\\MoPaymentServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "dev"
 }
