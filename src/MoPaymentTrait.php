@@ -9,7 +9,8 @@ use Potelo\MoPayment\Moip\Moip;
 use Potelo\MoPayment\Moip\Subscription as Moip_Subscription;
 use Potelo\MoPayment\Moip\Invoice as Moip_Invoice;
 use Potelo\MoPayment\Moip\Payment as Moip_Payment;
-
+use Moip\Moip as MoipSdk;
+use Moip\Auth\BasicAuth;
 trait MoPaymentTrait
 {
     /**
@@ -18,26 +19,193 @@ trait MoPaymentTrait
      * @var string
      */
 
-    protected static $apiToken;
+    protected static $api_token;
 
     /**
      * The Moip API key.
      *
      * @var string
      */
-    protected static $apiKey;
+    protected static $api_key;
+
+    /**
+     * Create an order and charge
+     *
+     * @param $amount
+     * @param $options
+     * @return \Moip\Resource\Payment
+     */
+    public function charge($amount, $options)
+    {
+        if (! array_key_exists('items', $options) &&
+            ! array_key_exists('invoice_id', $options)
+        ) {
+            $options['items'] = [];
+
+            array_push($options['items'], [
+                'description' => 'Nova cobrança',
+                'quantity' => 1,
+                'price_cents' => $amount,
+            ]);
+        }
+
+        if (! array_key_exists('customer_id', $options) && ! is_null($this->getMoipUserId()) ) {
+            $options['customer_id'] = $this->getMoipUserId();
+        }
+
+        if (! array_key_exists('token', $options) &&
+            ! array_key_exists('method', $options) &&
+            ! array_key_exists('customer_payment_method_id', $options) &&
+            (! $defaultCard = $this->defaultCard())
+        ) {
+            throw new RequestException('No payment source provided.');
+        }
+
+        $moip = new MoipSdk(new \Moip\Auth\BasicAuth($this->getApiToken(), $this->getApiKey()), $this->getMoipEnvironmentEndpoint());
+
+        $order = $moip->orders()->setOwnId(uniqid());
+        foreach ($options['items'] as $item) {
+            $order->addItem($item['description'], $item['quantity'], "", $item['price_cents']);
+        }
+        $customer = $moip->customers()->get($options['customer_id']);
+        $order->setCustomer($customer)->create();
+        $holder = $this->createHolderByCustomer($customer);
+        $payment = $order->payments()
+            ->setCreditCardHash($options['token'], $holder)
+            ->setInstallmentCount(1)
+            ->setStatementDescriptor('Nova cobrança')
+            ->execute();
+
+        if ($this->getMoipEnvironmentEndpoint() == MoipSdk::ENDPOINT_SANDBOX){
+            $payment->authorize();
+        }
+        return $payment;
+    }
+
+    /**
+     * Create holder by costumer data
+     *
+     * @param \Moip\Resource\Customer $customer
+     * @return \Moip\Resource\Holder
+     */
+    private function createHolderByCustomer(\Moip\Resource\Customer $customer)
+    {
+        $moip = new MoipSdk(new \Moip\Auth\BasicAuth($this->getApiToken(), $this->getApiKey()), $this->getMoipEnvironmentEndpoint());
+        $holder = $moip->holders()
+            ->setFullname('')
+            ->setBirthDate('')
+            ->setTaxDocument('')
+            ->setPhone('', '', '');
+
+        if(!is_null($customer->getFullname())){
+            $holder->setFullname($customer->getFullname());
+        }
+        if(!is_null($customer->getBirthDate())){
+            $holder->setBirthDate($customer->getBirthDate());
+        }
+        if(!is_null($customer->getTaxDocumentNumber())){
+            $holder->setTaxDocument($customer->getTaxDocumentNumber());
+        }
+        if(!is_null($customer->getPhoneAreaCode()) && !is_null($customer->getPhoneNumber()) && !is_null($customer->getPhoneCountryCode())){
+            $holder->setPhone($customer->getPhoneAreaCode(), $customer->getPhoneNumber(), $customer->getPhoneCountryCode());
+        }
+        if(!is_null($customer->getBillingAddress())){
+            $address = $customer->getBillingAddress();
+            $holder->setAddress('BILLING',
+                    $address->street,
+                    $address->number,
+                    $address->district,
+                    $address->city,
+                    $address->state,
+                    $address->zipCode,
+                    $address->complement
+            );
+        }
+        return $holder;
+
+    }
+    /**
+     * Create Moip customer
+     *
+     * @param $options
+     * @return \Moip\Resource\Customer
+     */
+    public function createCustomer($options)
+    {
+        if (!array_key_exists('name', $options) && !array_key_exists('email', $options)){
+            throw new InvalidArgumentException("'email' and 'name' are required.");
+        }
+
+        $moip = new MoipSdk(new BasicAuth($this->getApiToken(), $this->getApiKey()), $this->getMoipEnvironmentEndpoint());
+
+        $customer = $moip->customers()->setOwnId(uniqid())
+            ->setFullname($options['name'])
+            ->setEmail($options['email']);
+
+        if (array_key_exists('phone_prefix', $options) && array_key_exists('phone', $options)){
+            $customer->setPhone($options['phone_prefix'], $options['phone']);
+        }
+        if (array_key_exists('cpf_cnpj', $options)){
+            $customer->setTaxDocument($options['cpf_cnpj']);
+        }
+        if (array_key_exists('birth_date', $options)){
+            $customer->setBirthDate($options['birth_date']);
+        }
+        if(
+            array_key_exists('street', $options) &&
+            array_key_exists('number', $options) &&
+            array_key_exists('district', $options) &&
+            array_key_exists('city', $options) &&
+            array_key_exists('state', $options) &&
+            array_key_exists('zip_code', $options) &&
+            array_key_exists('complement', $options)
+        ){
+            $customer->addAddress('BILLING',
+                $options['street'],
+                $options['number'],
+                $options['district'],
+                $options['city'],
+                $options['state'],
+                $options['zip_code'],
+                $options['complement']
+            );
+        }
+
+        $customer = $customer->create();
+        $this->setMoipUserId($customer->getId());
+        $this->save();
+        return $customer;
+    }
+
+    /**
+     * Get the Moip API environment.
+     *
+     * @return mixed|string
+     */
+    public static function getMoipEnvironmentEndpoint()
+    {
+        $env = getenv('MOIP_ENV') ?? config('services.moip.env');
+
+        if( $env == 'sandbox' ) {
+            return MoipSdk::ENDPOINT_SANDBOX;
+        }
+        return MoipSdk::ENDPOINT_PRODUCTION;
+    }
 
     /**
      * Begin creating a new subscription.
      *
-     * @param string  $subscriptionName
+     * @param string  $subscription_name
      * @param string  $plan_code
      * @param string  $payment_mode
+     * @param string  $amount
+     * @param string  $coupon_code
+     * @param array  $table_fields
      * @return \Potelo\MoPayment\SubscriptionBuilder
      */
-    public function newSubscription($subscriptionName, $plan_code, $payment_mode)
+    public function newSubscription($subscription_name, $plan_code, $payment_mode, $amount = null, $coupon_code = null, $table_fields = [])
     {
-        return new SubscriptionBuilder($this, $subscriptionName, $plan_code, $payment_mode);
+        return new SubscriptionBuilder($this, $subscription_name, $plan_code, $payment_mode, $amount, $coupon_code, $table_fields);
     }
 
     /**
@@ -88,8 +256,8 @@ trait MoPaymentTrait
      */
     public static function getApiKey()
     {
-        if (static::$apiKey = getenv('MOIP_APIKEY')) {
-            return static::$apiKey;
+        if (static::$api_key = getenv('MOIP_APIKEY')) {
+            return static::$api_key;
         }
 
         return config('services.moip.key');
@@ -102,8 +270,8 @@ trait MoPaymentTrait
      */
     public static function getApiToken()
     {
-        if (static::$apiToken = getenv('MOIP_APITOKEN')) {
-            return static::$apiToken;
+        if (static::$api_token = getenv('MOIP_APITOKEN')) {
+            return static::$api_token;
         }
 
         return config('services.moip.token');
